@@ -22,8 +22,13 @@ import VolumeControl from "../components/VolumeControl";
 import PlaybackControls from "../components/PlaybackControls";
 import GoLiveButton from "../components/GoLiveButton";
 import Timeline from "../components/Timeline";
+import InOutSeekbar from "../components/InOutSeekbar";
 import ThumbnailStrip from "../components/ThumbnailStrip";
 import ClipsList from "../components/ClipsList";
+
+import FullscreenIcon from "../../../assets/Icon/fullscreenIcon.svg";
+import DownloadIcon from "../../../assets/Icon/downloadIcon.svg";
+import CutIcon from "../../../assets/Icon/cutIcon.svg";
 
 export default function VideoTrimming() {
   const dispatch = useDispatch();
@@ -49,10 +54,12 @@ export default function VideoTrimming() {
         dispatch(setCurrentTime(t));
       } else if (dragging === "in") {
         const frac = getFractionFromMouseEvent(e.clientX, thumbBarRef.current);
-        dispatch(setInPoint(clamp(frac, 0, outPoint - 0.02)));
+        const max = outPoint != null ? outPoint - 0.02 : 1;
+        dispatch(setInPoint(clamp(frac, 0, max)));
       } else if (dragging === "out") {
         const frac = getFractionFromMouseEvent(e.clientX, thumbBarRef.current);
-        dispatch(setOutPoint(clamp(frac, inPoint + 0.02, 1)));
+        const min = inPoint != null ? inPoint + 0.02 : 0;
+        dispatch(setOutPoint(clamp(frac, min, 1)));
       }
     };
 
@@ -68,87 +75,43 @@ export default function VideoTrimming() {
 
   return (
     <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
-        input[type=range] { -webkit-appearance:none; height:4px; border-radius:2px; outline:none; cursor:pointer; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:13px; height:13px; border-radius:50%; background:#6366f1; cursor:grab; border:2px solid #fff; }
-        ::-webkit-scrollbar { width:4px; }
-        ::-webkit-scrollbar-thumb { background:#374151; border-radius:2px; }
-      `}</style>
-
       <div
         className="flex h-full overflow-hidden text-white bg-[#0d0d10]"
-        style={{ fontFamily: "'DM Sans', sans-serif" }}
+        // style={{ fontFamily: "'DM Sans', sans-serif" }}
       >
         {/* LEFT: Editor */}
-        <div className="flex flex-1 flex-col overflow-hidden min-w-0">
+        <div className="flex flex-1 flex-col overflow-hidden min-w-0 mx-8  h-[75%] py-4 px-4 bg-[#111318] rounded-[20px]">
           <VideoPlayer videoRef={videoRef} />
 
           {/* Controls bar */}
-          <div className="bg-[#111318] border-t border-[#1f2937] px-[14px] h-[52px] flex items-center justify-between gap-2 shrink-0">
-            <div className="text-[13px] font-semibold tabular-nums text-[#d1d5db] min-w-[112px]">
-              {formatTime(currentTime)}{" "}
-              <span className="text-[#4b5563]">/</span> {formatTime(duration)}
-            </div>
+          <div className="bg-[#111318] border-t border-[#1f2937] px-[14px] h-[70px] flex items-center justify-between gap-2 shrink-0">
+            <div className="flex items-center">
+              <div className="text-[13px] font-semibold tabular-nums text-[#d1d5db] min-w-[112px]">
+                {formatTime(currentTime)}{" "}
+                <span className="text-[#4b5563]">/</span> {formatTime(duration)}
+              </div>
 
-            <VolumeControl videoRef={videoRef} />
+              <VolumeControl videoRef={videoRef} />
+            </div>
             <PlaybackControls videoRef={videoRef} />
 
             <div className="flex items-center gap-[5px]">
               <GoLiveButton />
               <IconBtn title="Download">
-                <svg
-                  width="15"
-                  height="15"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="7,10 12,15 17,10" />
-                  <line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
+                <img src={DownloadIcon} alt="FullscreenIcon" loading="lazy" />
               </IconBtn>
-              <IconBtn
-                title="Cut"
-                onClick={() => setShowEdit((o) => !o)}
-                active={showEdit}
-              >
-                <svg
-                  width="15"
-                  height="15"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <circle cx="6" cy="6" r="3" />
-                  <circle cx="6" cy="18" r="3" />
-                  <line x1="20" y1="4" x2="8.12" y2="15.88" />
-                  <line x1="14.47" y1="14.48" x2="20" y2="20" />
-                  <line x1="8.12" y1="8.12" x2="12" y2="12" />
-                </svg>
+              <IconBtn title="Cut" onClick={() => setShowEdit((o) => !o)} active={showEdit}>
+                <img src={CutIcon} alt="CutIcon" loading="lazy" />
               </IconBtn>
               <IconBtn title="Fullscreen">
-                <svg
-                  width="15"
-                  height="15"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
-                </svg>
+                <img src={FullscreenIcon} alt="FullscreenIcon" loading="lazy" />
               </IconBtn>
             </div>
           </div>
 
-          {showEdit && (
-            <Timeline videoRef={videoRef} timelineBarRef={tlBarRef} />
-          )}
-          {showEdit && <ThumbnailStrip thumbBarRef={thumbBarRef} />}
+          <Timeline videoRef={videoRef} timelineBarRef={tlBarRef} />
+          <InOutSeekbar />
+          {showEdit && <ThumbnailStrip thumbBarRef={thumbBarRef} videoRef={videoRef} />}
         </div>
 
         {/* RIGHT: Clips */}

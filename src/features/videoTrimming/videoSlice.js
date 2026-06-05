@@ -12,9 +12,9 @@ const initialState = {
   volume: 0.8,
   isMuted: false,
 
-  // Clip range (fractions 0–1)
-  inPoint: 0.13,
-  outPoint: 0.46,
+  // Clip range (fractions 0–1), null = not yet selected
+  inPoint: null,
+  outPoint: null,
 
   // Dragging: null | 'playhead' | 'in' | 'out'
   dragging: null,
@@ -56,10 +56,12 @@ const videoSlice = createSlice({
       state.isMuted = payload;
     },
     setInPoint(state, { payload }) {
-      state.inPoint = Math.max(0, Math.min(payload, state.outPoint - 0.02));
+      const max = state.outPoint != null ? state.outPoint - 0.02 : 1;
+      state.inPoint = Math.max(0, Math.min(payload, max));
     },
     setOutPoint(state, { payload }) {
-      state.outPoint = Math.max(state.inPoint + 0.02, Math.min(payload, 1));
+      const min = state.inPoint != null ? state.inPoint + 0.02 : 0;
+      state.outPoint = Math.max(min, Math.min(payload, 1));
     },
     setDragging(state, { payload }) {
       state.dragging = payload; // null | 'playhead' | 'in' | 'out'

@@ -1,14 +1,12 @@
-// features/auth/authSlice.js
-
 import { createSlice } from "@reduxjs/toolkit";
 import { login, logout } from "./authThunk";
 
 const initialState = {
-  user: null,
-  token: localStorage.getItem("token") || null,
+  user: JSON.parse(localStorage.getItem("auth_user")) || null,
+  token: localStorage.getItem("access_token") || null,
   loading: false,
   error: null,
-  isAuthenticated: !!localStorage.getItem("token"),
+  isAuthenticated: !!localStorage.getItem("access_token"),
 };
 
 const authSlice = createSlice({
@@ -21,7 +19,6 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-
       // LOGIN
       .addCase(login.pending, (state) => {
         state.loading = true;
@@ -29,15 +26,14 @@ const authSlice = createSlice({
       })
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false;
+        state.token = action.payload.accessToken;
         state.user = action.payload.user;
-        state.token = action.payload.token;
         state.isAuthenticated = true;
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
-
       // LOGOUT
       .addCase(logout.fulfilled, (state) => {
         state.user = null;

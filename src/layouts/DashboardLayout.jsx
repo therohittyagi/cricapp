@@ -15,7 +15,7 @@ import Topbar from "../shared/components/Topbar";
  */
 export default function DashboardLayout({ children, user }) {
   return (
-    <div className="flex min-h-screen overflow-hidden" style={{ background: "#0f1117" }}>
+    <div className="flex h-screen overflow-hidden" style={{ background: "#0f1117" }}>
       <Sidebar />
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">

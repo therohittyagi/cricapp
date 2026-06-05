@@ -3,6 +3,6 @@ export const EVENT_MARKERS = [
  
 ];
 
-export const HLS_STREAM_URL = 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
+export const HLS_STREAM_URL = 'http://192.168.15.143:81/ODI/IND_VS_PAK_20260605/01_test.m3u8';
 
 export const DEFAULT_DURATION = 1800; // 30 minutes fallback

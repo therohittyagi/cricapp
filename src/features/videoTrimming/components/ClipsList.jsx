@@ -28,17 +28,19 @@ export default function ClipsList() {
   const handleSave = () => dispatch(saveClipThunk());
 
   return (
-    <div className="w-80 shrink-0 bg-[#111318] border-l border-[#1f2937] flex flex-col overflow-hidden">
+    <div className="w-[20%] shrink-0 bg-[#111318] flex flex-col overflow-hidden rounded-[10px]">
 
       {/* Header */}
       <div className="px-[18px] pt-4 pb-3 border-b border-[#1f2937] flex items-center justify-between">
-        <h2 className="text-base font-bold text-[#f9fafb] tracking-[-0.3px]">Clips List</h2>
+        <h2 className="text-lg font-semibold text-[#f9fafb] tracking-[-0.3px]">
+          Clips List <span className="text-[#6b7280] font-normal">({clips.length})</span>
+        </h2>
 
         {/* Filter dropdown */}
         <div className="relative">
           <button
             onClick={() => setFilterOpen((o) => !o)}
-            className="bg-[#1f2937] border border-[#374151] rounded-md text-[#9ca3af] text-[11px] font-semibold py-1 px-[10px] cursor-pointer flex items-center gap-1"
+            className="bg-[#1f2937] border border-[#374151] rounded-md text-[#9ca3af] text-sm font-semibold py-1 px-[10px] cursor-pointer flex items-center gap-1"
           >
             {filterTag === 'all' ? 'All tags' : filterTag}
             <ChevronIcon />
@@ -79,7 +81,7 @@ export default function ClipsList() {
       {/* Clips */}
       <div className="flex-1 overflow-y-auto">
         {filtered.length === 0 ? (
-          <div className="py-10 px-5 text-center text-[#374151] text-xs">
+          <div className="py-10 px-5 text-center text-[#374151] text-sm">
             No clips{filterTag !== 'all' ? ` tagged "${filterTag}"` : ''}
           </div>
         ) : (

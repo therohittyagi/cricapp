@@ -1,19 +1,19 @@
-// features/auth/services/authService.js
-
 import api from "../../../shared/services/axios";
 
 export const loginUser = async (credentials) => {
-  const response = await api.post("/auth/login", credentials);
+  const response = await api.post("user-management/login/", credentials);
 
-  const { token, user } = response.data;
+  const { access, refresh, user } = response.data.data;
 
-  if (token) {
-    localStorage.setItem("token", token);
-  }
+  localStorage.setItem("access_token", access);
+  localStorage.setItem("refresh_token", refresh);
+  localStorage.setItem("auth_user", JSON.stringify(user));
 
-  return { token, user };
+  return { accessToken: access, refreshToken: refresh, user };
 };
 
 export const logoutUser = () => {
-  localStorage.removeItem("token");
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("refresh_token");
+  localStorage.removeItem("auth_user");
 };

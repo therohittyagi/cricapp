@@ -5,21 +5,21 @@ import LogIn from "../features/auth/pages/LogIn";
 import VideoTrimming from "../features/videoTrimming/pages/VideoTrimming";
 
 function App() {
-  // const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
 
   return (
     <Routes>
-      {/* <Route
+      <Route
         path="/login"
         element={
           isAuthenticated ? <Navigate to="/trimming" replace /> : <LogIn />
         }
-      /> */}
+      />
 
       <Route
         path="/*"
         element={
-          // isAuthenticated ? (
+          isAuthenticated ? (
             <DashboardLayout>
               <Routes>
                 <Route path="/" element={<Navigate to="/trimming" replace />} />
@@ -30,9 +30,9 @@ function App() {
                 <Route path="/config" element={<div />} />
               </Routes>
             </DashboardLayout>
-          // ) : (
-          //   <Navigate to="/login" replace />
-          // )
+          ) : (
+            <Navigate to="/login" replace />
+          )
         }
       />
     </Routes>

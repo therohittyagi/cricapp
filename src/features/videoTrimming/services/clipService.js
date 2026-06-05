@@ -12,7 +12,7 @@ export function createClip({ clipName, selectedTag, inPoint, outPoint, duration 
   return {
     id: Date.now(),
     name: clipName || 'Untitled Clip',
-    tag: selectedTag,
+    tags: [selectedTag],
     start: formatTime(inPoint * duration),
     end: formatTime(outPoint * duration),
     thumb: randomThumb,
@@ -28,7 +28,9 @@ export function createClip({ clipName, selectedTag, inPoint, outPoint, duration 
  */
 export function filterClips(clips, filterTag) {
   if (!filterTag || filterTag === 'all') return clips;
-  return clips.filter((c) => c.tag === filterTag);
+  return clips.filter((c) =>
+    Array.isArray(c.tags) ? c.tags.includes(filterTag) : c.tag === filterTag
+  );
 }
 
 /**

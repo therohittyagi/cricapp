@@ -28,13 +28,13 @@ export default function Timeline({ videoRef, timelineBarRef }) {
   };
 
   return (
-    <div className="bg-[#111318] border-t border-[#1f2937] px-[14px] pt-[10px] shrink-0">
+    <div className="bg-[#111318] border-t border-[#1f2937] px-[14px] pt-[10px] shrink-0 ">
 
       {/* Progress bar */}
       <div
         ref={timelineBarRef}
         onClick={handleBarClick}
-        className="relative h-[6px] bg-[#1f2937] rounded-[3px] cursor-crosshair select-none"
+        className="relative h-[6px] bg-[#1f2937] rounded-[3px] cursor-crosshair select-none my-2"
       >
         {/* Played fill */}
         <div
@@ -51,7 +51,7 @@ export default function Timeline({ videoRef, timelineBarRef }) {
       </div>
 
       {/* Time ruler */}
-      <div className="relative h-5 mt-1 overflow-hidden">
+      <div className="relative h-5 mt-1 overflow-hidden mb-2">
         {Array.from({ length: TICK_COUNT }, (_, i) => {
           const frac = i / (TICK_COUNT - 1);
           return (

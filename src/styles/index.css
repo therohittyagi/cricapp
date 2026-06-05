@@ -1,11 +1,12 @@
 @import "tailwindcss";
 
-/* html,
+html,
 body,
 #root {
+  height: 100%;
   width: 100%;
-  min-height: 100%;
   margin: 0;
+  overflow: hidden;
 }
 
 body {
@@ -16,4 +17,25 @@ body {
 
 * {
   box-sizing: border-box;
-} */
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #6366f1;
+  cursor: grab;
+  border: 2px solid #fff;
+}
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: #374151; border-radius: 2px; }

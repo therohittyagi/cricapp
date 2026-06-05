@@ -1,28 +1,21 @@
 import { NavLink } from "react-router-dom";
+import Logo from "../../assets/images/cglogo.svg";
 
 const NAV_ITEMS = [
   { label: "Services", to: "/services", icon: HomeIcon },
-  { label: "Video Trimming", to: "/trimming", icon: ScissorsIcon },
+  { label: "Live Trimming", to: "/trimming", icon: ScissorsIcon },
   { label: "Configuration", to: "/config", icon: SettingsIcon },
 ];
 
-function LogoMark() {
-  return (
-    <svg width="34" height="34" viewBox="0 0 34 34" fill="none" aria-hidden="true">
-      <path
-        d="M17 2.6 27.9 9v12.6L17 31.4 6.1 21.6V12.4L17 2.6Z"
-        fill="#f4f5f8"
-      />
-      <path d="M17 8 22.8 11.3V18L17 14.7 11.2 18V11.3L17 8Z" fill="#111827" />
-      <path d="M17 14.7 22.8 18V24.7L17 28 11.2 24.7V18L17 14.7Z" fill="#6b6ef9" />
-      <path d="M17 14.7 11.2 18 17 21.3 22.8 18 17 14.7Z" fill="#111827" opacity="0.85" />
-    </svg>
-  );
-}
-
 function HomeIcon() {
   return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <svg
+      width="15"
+      height="15"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
       <path
         d="M4 11.5 12 5l8 6.5"
         stroke="currentColor"
@@ -50,19 +43,47 @@ function HomeIcon() {
 
 function ScissorsIcon() {
   return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M8 12.5 18.5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-      <path d="M8 11.5 18.5 19" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    <svg
+      width="15"
+      height="15"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M8 12.5 18.5 5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M8 11.5 18.5 19"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
       <circle cx="7" cy="12" r="2.25" stroke="currentColor" strokeWidth="1.8" />
       <circle cx="19" cy="5" r="2.25" stroke="currentColor" strokeWidth="1.8" />
-      <circle cx="19" cy="19" r="2.25" stroke="currentColor" strokeWidth="1.8" />
+      <circle
+        cx="19"
+        cy="19"
+        r="2.25"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
     </svg>
   );
 }
 
 function SettingsIcon() {
   return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <svg
+      width="15"
+      height="15"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
       <path
         d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Z"
         stroke="currentColor"
@@ -84,7 +105,7 @@ export default function Sidebar() {
       className="
         flex min-h-screen shrink-0 flex-col
         border-r border-[#1f2330]
-        bg-[#12131b]
+        bg-[#111318]
         shadow-[-1px_0_0_rgba(255,255,255,0.02)_inset]
         w-20
         sm:w-24
@@ -93,21 +114,12 @@ export default function Sidebar() {
       "
     >
       <div className="flex items-start justify-center md:justify-start gap-3 px-5 pt-5">
-        <div className="mt-0.5">
-          <LogoMark />
-        </div>
-
-        <div className="hidden md:block min-w-0 leading-tight">
-          <div className="text-[13px] font-medium tracking-tight text-[#edf0f7]">
-            Digital <span className="text-[#5f6bff]">Media</span>
-          </div>
-          <div className="text-[13px] font-medium tracking-tight text-[#edf0f7]">
-            Xperience
-          </div>
+        <div className="pt-4">
+          <img src={Logo} alt="Logo" className="w-full h-[100px] object-contain" />
         </div>
       </div>
 
-      <div className="hidden md:block px-5 pt-6 text-[9px] font-semibold uppercase tracking-[0.18em] text-[#50576a]">
+      <div className="hidden md:block px-5 pt-6 text-xs font-semibold uppercase tracking-[0.18em] text-[#50576a]">
         Main Menu
       </div>
 
@@ -121,7 +133,7 @@ export default function Sidebar() {
             to={to}
             className={({ isActive }) =>
               [
-                "flex items-center justify-center md:justify-start gap-3 rounded-[10px] px-3 md:px-4 py-3 text-[14px] transition-colors",
+                "flex items-center justify-center md:justify-start gap-3 rounded-[10px] px-3 md:px-4 py-3 text-lg font-bold transition-colors",
                 isActive
                   ? "bg-[#1c202e] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)]"
                   : "text-[#a1a8ba] hover:bg-[#181c28] hover:text-white",
@@ -132,9 +144,7 @@ export default function Sidebar() {
               <Icon />
             </span>
 
-            <span className="hidden md:block font-medium">
-              {label}
-            </span>
+            <span className="hidden md:block font-medium">{label}</span>
           </NavLink>
         ))}
       </nav>

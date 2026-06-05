@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import LogInBg from "../../../assets/images/loginBg.jpg";
+import Logo from "../../../assets/images/cglogo.svg";
+
 import { clearAuthError } from "../authSlice";
 import { login } from "../authThunk";
 
@@ -12,7 +14,7 @@ export default function LogIn() {
     (state) => state.auth,
   );
   const [showLogin, setShowLogin] = useState(false);
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
   useEffect(() => {
@@ -30,7 +32,7 @@ export default function LogIn() {
   const handleSubmit = (event) => {
     event.preventDefault();
     dispatch(clearAuthError());
-    dispatch(login({ email, password }));
+    dispatch(login({ username, password }));
   };
 
   return (
@@ -51,7 +53,7 @@ export default function LogIn() {
 
       {/* ── Logo — fixed top-left ── */}
       <div className="absolute top-5 left-5 sm:top-6 sm:left-8 md:left-14 lg:left-20 z-20 flex items-center gap-2">
-        <img src="" alt="" />
+        <img src={Logo} alt="Logo"  />
       </div>
 
       {/* ── Main layout ── */}
@@ -121,18 +123,18 @@ export default function LogIn() {
                   Login now and get access to exclusive content!
                 </p>
 
-                {/* Email */}
+                {/* Username */}
                 <div className="mb-3 sm:mb-4">
                   <label className="block text-white/80 text-[0.8rem] sm:text-[0.82rem] font-semibold mb-1.5 sm:mb-2">
-                    Email address
+                    Username
                   </label>
                   <input
-                    type="email"
-                    placeholder="Email@mail.com"
-                    value={email}
+                    type="text"
+                    placeholder="Enter username"
+                    value={username}
                     required
-                    autoComplete="email"
-                    onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="username"
+                    onChange={(e) => setUsername(e.target.value)}
                     className="w-full bg-[#1a2845]/75 border border-white/[0.1] rounded-lg px-4 py-2.5 sm:py-[11px] text-white text-sm placeholder-white/25 outline-none focus:border-violet-500/60 transition-colors"
                   />
                 </div>

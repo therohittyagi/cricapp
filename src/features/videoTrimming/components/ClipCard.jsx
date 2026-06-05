@@ -17,7 +17,7 @@ const PlayOverlay = () => (
 );
 
 export default function ClipCard({ clip }) {
-  const tagColor = TAG_COLORS[clip.tag] || { text: '#fff', bg: '#333', border: '#555' };
+  const tags = Array.isArray(clip.tags) ? clip.tags : (clip.tag ? [clip.tag] : []);
 
   return (
     <div className="flex items-start gap-3 py-3 px-5 border-b border-[#1a1f2e] cursor-pointer transition-colors duration-150 hover:bg-white/[0.04]">
@@ -41,13 +41,21 @@ export default function ClipCard({ clip }) {
           {clip.name}
         </div>
 
-        <div className="flex items-center justify-between gap-2">
-          <span
-            className="inline-block py-[2px] px-[10px] rounded-full text-[11px] font-bold tracking-[0.3px]"
-            style={{ background: tagColor.bg, color: tagColor.text, border: `1px solid ${tagColor.border}` }}
-          >
-            {clip.tag}
-          </span>
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-1 flex-wrap">
+            {tags.map((tag, idx) => {
+              const c = TAG_COLORS[tag] || { text: '#fff', bg: '#333', border: '#555' };
+              return (
+                <span
+                  key={idx}
+                  className="inline-block py-[2px] px-[8px] rounded-full text-[10px] font-bold tracking-[0.3px]"
+                  style={{ background: c.bg, color: c.text, border: `1px solid ${c.border}` }}
+                >
+                  {tag}
+                </span>
+              );
+            })}
+          </div>
           <span className="text-[10px] text-[#4b5563] tabular-nums whitespace-nowrap">
             {clip.start} – {clip.end}
           </span>
