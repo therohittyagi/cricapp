@@ -1,10 +1,37 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import LogInBg from "../../../assets/images/loginBg.jpg";
+import { clearAuthError } from "../authSlice";
+import { login } from "../authThunk";
 
 export default function LogIn() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { loading, error, isAuthenticated } = useSelector(
+    (state) => state.auth,
+  );
   const [showLogin, setShowLogin] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/trimming", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
+  useEffect(() => {
+    return () => {
+      dispatch(clearAuthError());
+    };
+  }, [dispatch]);
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    dispatch(clearAuthError());
+    dispatch(login({ email, password }));
+  };
 
   return (
     <section className="relative w-full min-h-screen bg-[#0a0a0f] overflow-hidden">
@@ -54,7 +81,9 @@ export default function LogIn() {
             {/* Get Started */}
             <button
               onClick={() => setShowLogin(true)}
-              className="group relative overflow-hidden px-6 sm:px-8 py-3 sm:py-3.5 rounded-lg font-semibold text-white text-sm sm:text-base tracking-wide bg-gradient-to-br from-[#5a29f5] to-violet-600 hover:from-violet-500 hover:to-violet-700 shadow-[0_0_28px_rgba(108,63,255,0.5)] hover:shadow-[0_0_45px_rgba(108,63,255,0.7)] hover:-translate-y-0.5 transition-all duration-300"
+              className={`group relative overflow-hidden px-6 sm:px-8 py-3 sm:py-3.5 rounded-lg font-semibold text-white text-sm sm:text-base tracking-wide bg-gradient-to-br from-[#5a29f5] to-violet-600 hover:from-violet-500 hover:to-violet-700 shadow-[0_0_28px_rgba(108,63,255,0.5)] hover:shadow-[0_0_45px_rgba(108,63,255,0.7)] hover:-translate-y-0.5 transition-all duration-300 ${
+                showLogin ? "invisible" : ""
+              }`}
             >
               <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.15)_50%,transparent_60%)]" />
               <span className="relative">Get Started</span>
@@ -70,7 +99,8 @@ export default function LogIn() {
             }`}
           >
             {/* Single glass card — matches Image 2 */}
-            <div
+            <form
+              onSubmit={handleSubmit}
               className="relative rounded-2xl overflow-hidden"
               style={{
                 background: "rgba(15, 22, 50, 0)",
@@ -100,6 +130,8 @@ export default function LogIn() {
                     type="email"
                     placeholder="Email@mail.com"
                     value={email}
+                    required
+                    autoComplete="email"
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full bg-[#1a2845]/75 border border-white/[0.1] rounded-lg px-4 py-2.5 sm:py-[11px] text-white text-sm placeholder-white/25 outline-none focus:border-violet-500/60 transition-colors"
                   />
@@ -114,10 +146,18 @@ export default function LogIn() {
                     type="password"
                     placeholder="••••••"
                     value={password}
+                    required
+                    autoComplete="current-password"
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full bg-[#1a2845]/75 border border-white/[0.1] rounded-lg px-4 py-2.5 sm:py-[11px] text-white text-sm placeholder-white/25 outline-none focus:border-violet-500/60 transition-colors"
                   />
                 </div>
+
+                {error ? (
+                  <p className="mb-4 rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-center text-xs font-medium text-red-200">
+                    {error}
+                  </p>
+                ) : null}
 
                 {/* Forgot */}
                 <div className="text-center mb-5 sm:mb-6">
@@ -133,8 +173,12 @@ export default function LogIn() {
                 </div>
 
                 {/* Login btn */}
-                <button className="w-full py-3 sm:py-3.5 bg-gradient-to-r from-[#5530f5] to-[#7c3aed] hover:from-[#6040ff] hover:to-[#8b46ff] text-white font-bold text-sm sm:text-[0.95rem] rounded-lg shadow-[0_0_22px_rgba(108,63,255,0.45)] hover:shadow-[0_0_38px_rgba(108,63,255,0.65)] hover:-translate-y-px transition-all duration-200 mb-3 sm:mb-4 tracking-wide">
-                  Login
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3 sm:py-3.5 bg-gradient-to-r from-[#5530f5] to-[#7c3aed] hover:from-[#6040ff] hover:to-[#8b46ff] text-white font-bold text-sm sm:text-[0.95rem] rounded-lg shadow-[0_0_22px_rgba(108,63,255,0.45)] hover:shadow-[0_0_38px_rgba(108,63,255,0.65)] hover:-translate-y-px transition-all duration-200 mb-3 sm:mb-4 tracking-wide disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0"
+                >
+                  {loading ? "Logging in..." : "Login"}
                 </button>
 
                 {/* Terms */}
@@ -164,7 +208,10 @@ export default function LogIn() {
                 </div>
 
                 {/* Google */}
-                <button className="w-full py-2.5 sm:py-[11px] bg-white hover:bg-gray-50 text-[#1a1a2e] font-semibold text-sm rounded-lg flex items-center justify-center gap-2.5 hover:-translate-y-px transition-all duration-200 shadow-md">
+                <button
+                  type="button"
+                  className="w-full py-2.5 sm:py-[11px] bg-white hover:bg-gray-50 text-[#1a1a2e] font-semibold text-sm rounded-lg flex items-center justify-center gap-2.5 hover:-translate-y-px transition-all duration-200 shadow-md"
+                >
                   <svg width="18" height="18" viewBox="0 0 48 48">
                     <path
                       fill="#FFC107"
@@ -186,7 +233,7 @@ export default function LogIn() {
                   Sign with Google
                 </button>
               </div>
-            </div>
+            </form>
           </div>
         </div>
       </div>

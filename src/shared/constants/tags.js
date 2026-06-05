@@ -1,6 +1,6 @@
 export const TAG_COLORS = {
   Fours:     { text: '#4ade80', bg: '#14532d', border: '#166534' },
-  Sixs:      { text: '#c084fc', bg: '#3b0764', border: '#581c87' },
+  Sixes:      { text: '#c084fc', bg: '#3b0764', border: '#581c87' },
   Wicket:    { text: '#f87171', bg: '#7f1d1d', border: '#991b1b' },
   Catch:     { text: '#60a5fa', bg: '#1e3a5f', border: '#1d4ed8' },
   'Run Out': { text: '#fb923c', bg: '#431407', border: '#c2410c' },
