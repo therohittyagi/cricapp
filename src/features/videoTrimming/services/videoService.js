@@ -1,25 +1,20 @@
-const BASE_URL = import.meta.env.VITE_LIVE_API_URL || '/api';
+// features/video/services/videoService.js
 
-export async function fetchMatchConfig(matchId) {
-  const res = await fetch(`${BASE_URL}/configuration/get-modify-config/${matchId}/`);
-  if (!res.ok) throw new Error(`Failed to fetch match config: ${res.status}`);
-  return res.json();
-}
+import api from '../../../shared/services/axios';
 
+export const fetchMatchConfig = async (matchId) => {
+  const response = await api.get(
+    `/configuration/get-modify-config/${matchId}/`
+  );
 
+  return response.data;
+};
 
-/**
- * Save a clip to the server.
- * @param {object} clip
- * @returns {Promise<object>} saved clip with server-assigned id
- */
-export async function saveClipToServer(clip) {
-  const res = await fetch(`${BASE_URL}/clips`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(clip),
-  });
-  if (!res.ok) throw new Error(`Failed to save clip: ${res.status}`);
-  return res.json();
-}
+export const saveClipToServer = async (payload) => {
+  const response = await api.post(
+    '/clipping/hls-clip/',
+    payload
+  );
 
+  return response.data;
+};

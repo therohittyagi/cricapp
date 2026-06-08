@@ -1,11 +1,19 @@
-import { createSlice } from '@reduxjs/toolkit';
-import { DEFAULT_DURATION } from '../../shared/constants/events';
-import { loadHlsThunk, saveClipThunk, fetchMatchConfigThunk } from './videoThunk';
+// features/video/videoSlice.js
+
+import { createSlice } from "@reduxjs/toolkit";
+import { DEFAULT_DURATION } from "../../shared/constants/events";
+import {
+  loadHlsThunk,
+  saveClipThunk,
+  fetchMatchConfigThunk,
+} from "./videoThunk";
 
 const initialState = {
+  // Match Data
+  matchId: null,
   hlsUrl: null,
 
-  // HLS / playback
+  // HLS / Playback
   hlsReady: false,
   isPlaying: false,
   currentTime: 0,
@@ -13,114 +21,176 @@ const initialState = {
   volume: 0.8,
   isMuted: false,
 
-  // Clip range (fractions 0–1), null = not yet selected
+  // Clip Range
   inPoint: null,
   outPoint: null,
 
-  // Dragging: null | 'playhead' | 'in' | 'out'
+  // Dragging
   dragging: null,
 
-  // Clips
+  // Saved Clips
   clips: [],
 
   // Form
-  clipName: 'cricketsample.mp4',
+  clipName: "sample.mp4",
   selectedTags: [],
-  filterTag: 'all',
+  filterTag: "all",
 
-  // Async status
+  // Async State
   loading: false,
   error: null,
 };
 
 const videoSlice = createSlice({
-  name: 'video',
+  name: "video",
+
   initialState,
+
   reducers: {
-    setIsPlaying(state, { payload }) {
-      state.isPlaying = payload;
+    setIsPlaying(state, action) {
+      state.isPlaying = action.payload;
     },
-    setCurrentTime(state, { payload }) {
-      state.currentTime = payload;
+
+    setCurrentTime(state, action) {
+      state.currentTime = action.payload;
     },
-    setDuration(state, { payload }) {
-      state.duration = payload;
+
+    setDuration(state, action) {
+      state.duration = action.payload;
     },
-    setVolume(state, { payload }) {
-      state.volume = payload;
-      if (payload === 0) state.isMuted = true;
+
+    setVolume(state, action) {
+      state.volume = action.payload;
+
+      if (action.payload === 0) {
+        state.isMuted = true;
+      }
     },
-    setIsMuted(state, { payload }) {
-      state.isMuted = payload;
+
+    setIsMuted(state, action) {
+      state.isMuted = action.payload;
     },
-    setInPoint(state, { payload }) {
+
+    setInPoint(state, action) {
       const minGap = state.duration > 0 ? 1 / state.duration : 0.001;
+
       const max = state.outPoint != null ? state.outPoint - minGap : 1;
-      state.inPoint = Math.max(0, Math.min(payload, max));
+
+      state.inPoint = Math.max(0, Math.min(action.payload, max));
     },
-    setOutPoint(state, { payload }) {
+
+    setOutPoint(state, action) {
       const minGap = state.duration > 0 ? 1 / state.duration : 0.001;
+
       const min = state.inPoint != null ? state.inPoint + minGap : 0;
-      state.outPoint = Math.max(min, Math.min(payload, 1));
+
+      state.outPoint = Math.max(min, Math.min(action.payload, 1));
     },
-    setDragging(state, { payload }) {
-      state.dragging = payload;
+
+    setDragging(state, action) {
+      state.dragging = action.payload;
     },
-    setClipName(state, { payload }) {
-      state.clipName = payload;
+
+    setClipName(state, action) {
+      state.clipName = action.payload;
     },
-    toggleTag(state, { payload }) {
-      const idx = state.selectedTags.indexOf(payload);
-      if (idx === -1) state.selectedTags.push(payload);
-      else state.selectedTags.splice(idx, 1);
+
+    toggleTag(state, action) {
+      const tag = action.payload;
+
+      const exists = state.selectedTags.includes(tag);
+
+      if (exists) {
+        state.selectedTags = state.selectedTags.filter((item) => item !== tag);
+      } else {
+        state.selectedTags.push(tag);
+      }
     },
-    setFilterTag(state, { payload }) {
-      state.filterTag = payload;
+
+    setFilterTag(state, action) {
+      state.filterTag = action.payload;
     },
+
+    clearError(state) {
+      state.error = null;
+    },
+
     resetInOut(state) {
       state.inPoint = null;
       state.outPoint = null;
       state.selectedTags = [];
-      state.clipName = 'cricketsample.mp4';
+      state.clipName = "sample.mp4";
     },
   },
+
   extraReducers: (builder) => {
-    // loadHlsThunk
     builder
+
+      /*
+       * FETCH MATCH CONFIG
+       */
+      .addCase(fetchMatchConfigThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+
+      .addCase(fetchMatchConfigThunk.fulfilled, (state, action) => {
+        state.loading = false;
+
+        state.matchId = action.payload?.match_id || null;
+
+        state.hlsUrl = action.payload?.output_hls_url || null;
+      })
+
+      .addCase(fetchMatchConfigThunk.rejected, (state, action) => {
+        state.loading = false;
+
+        state.error = action.payload || action.error.message;
+      })
+
+      /*
+       * LOAD HLS
+       */
       .addCase(loadHlsThunk.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(loadHlsThunk.fulfilled, (state) => {
-        state.hlsReady = true;
-        state.loading = false;
-      })
-      .addCase(loadHlsThunk.rejected, (state, { error }) => {
-        state.loading = false;
-        state.error = error.message;
-      });
 
-    // saveClipThunk
-    builder
+      .addCase(loadHlsThunk.fulfilled, (state) => {
+        state.loading = false;
+        state.hlsReady = true;
+      })
+
+      .addCase(loadHlsThunk.rejected, (state, action) => {
+        state.loading = false;
+
+        state.error = action.payload || action.error.message;
+      })
+
+      /*
+       * SAVE CLIP
+       */
       .addCase(saveClipThunk.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
-      .addCase(saveClipThunk.fulfilled, (state, { payload }) => {
-        state.clips.unshift(payload);
-        state.loading = false;
-      })
-      .addCase(saveClipThunk.rejected, (state, { error }) => {
-        state.loading = false;
-        state.error = error.message;
-      });
 
-    // fetchMatchConfigThunk
-    builder
-      .addCase(fetchMatchConfigThunk.fulfilled, (state, { payload }) => {
-        state.hlsUrl = payload.output_hls_url;
+      .addCase(saveClipThunk.fulfilled, (state, action) => {
+        state.loading = false;
+
+        state.clips.unshift(action.payload);
+
+        // Reset form after save
+        state.inPoint = null;
+        state.outPoint = null;
+        state.selectedTags = [];
+        state.clipName = "sample.mp4";
       })
-      .addCase(fetchMatchConfigThunk.rejected, (state, { error }) => {
-        state.error = error.message;
+
+      .addCase(saveClipThunk.rejected, (state, action) => {
+        state.loading = false;
+
+        state.error = action.payload || action.error.message;
       });
   },
 });
@@ -137,25 +207,48 @@ export const {
   setClipName,
   toggleTag,
   setFilterTag,
+  clearError,
   resetInOut,
 } = videoSlice.actions;
 
-// ── Selectors ─────────────────────────────────────────────────────────────────
+/*
+|--------------------------------------------------------------------------
+| Selectors
+|--------------------------------------------------------------------------
+*/
 
-export const selectHlsUrl        = (s) => s.video.hlsUrl;
-export const selectHlsReady      = (s) => s.video.hlsReady;
-export const selectIsPlaying    = (s) => s.video.isPlaying;
-export const selectCurrentTime  = (s) => s.video.currentTime;
-export const selectDuration     = (s) => s.video.duration;
-export const selectVolume       = (s) => s.video.volume;
-export const selectIsMuted      = (s) => s.video.isMuted;
-export const selectInPoint      = (s) => s.video.inPoint;
-export const selectOutPoint     = (s) => s.video.outPoint;
-export const selectDragging     = (s) => s.video.dragging;
-export const selectClips        = (s) => s.video.clips;
-export const selectClipName     = (s) => s.video.clipName;
-export const selectSelectedTags = (s) => s.video.selectedTags;
-export const selectFilterTag    = (s) => s.video.filterTag;
-export const selectLoading      = (s) => s.video.loading;
+export const selectMatchId = (state) => state.video.matchId;
+
+export const selectHlsUrl = (state) => state.video.hlsUrl;
+
+export const selectHlsReady = (state) => state.video.hlsReady;
+
+export const selectIsPlaying = (state) => state.video.isPlaying;
+
+export const selectCurrentTime = (state) => state.video.currentTime;
+
+export const selectDuration = (state) => state.video.duration;
+
+export const selectVolume = (state) => state.video.volume;
+
+export const selectIsMuted = (state) => state.video.isMuted;
+
+export const selectInPoint = (state) => state.video.inPoint;
+
+export const selectOutPoint = (state) => state.video.outPoint;
+
+export const selectDragging = (state) => state.video.dragging;
+
+export const selectClips = (state) => state.video.clips;
+
+export const selectClipName = (state) => state.video.clipName;
+
+export const selectSelectedTags = (state) => state.video.selectedTags;
+
+export const selectFilterTag = (state) => state.video.filterTag;
+
+export const selectLoading = (state) => state.video.loading;
+
+export const selectError = (state) => state.video.error;
 
 export default videoSlice.reducer;
