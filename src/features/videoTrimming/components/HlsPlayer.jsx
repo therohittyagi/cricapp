@@ -1,22 +1,18 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { loadHlsThunk } from '../videoThunk';
 import { setCurrentTime, setDuration, setIsPlaying } from '../videoSlice';
 
 export default function HlsPlayer({ videoRef, className }) {
   const dispatch = useDispatch();
-  const initRef  = useRef(false);
 
+  // Destroy HLS instance on unmount
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video || initRef.current) return;
-    initRef.current = true;
-    dispatch(loadHlsThunk(video));
     return () => {
       import('../services/hlsService').then(({ destroyHls }) => destroyHls());
     };
-  }, [dispatch, videoRef]);
+  }, []);
 
+  // Sync video events to Redux
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;

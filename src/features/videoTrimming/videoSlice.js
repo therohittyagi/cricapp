@@ -1,9 +1,10 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { INITIAL_CLIPS } from '../../shared/constants/tags';
 import { DEFAULT_DURATION } from '../../shared/constants/events';
-import { loadHlsThunk, saveClipThunk } from './videoThunk';
+import { loadHlsThunk, saveClipThunk, fetchMatchConfigThunk } from './videoThunk';
 
 const initialState = {
+  hlsUrl: null,
+
   // HLS / playback
   hlsReady: false,
   isPlaying: false,
@@ -20,11 +21,11 @@ const initialState = {
   dragging: null,
 
   // Clips
-  clips: INITIAL_CLIPS,
+  clips: [],
 
   // Form
   clipName: 'cricketsample.mp4',
-  selectedTag: 'Fours',
+  selectedTags: [],
   filterTag: 'all',
 
   // Async status
@@ -36,9 +37,6 @@ const videoSlice = createSlice({
   name: 'video',
   initialState,
   reducers: {
-    setHlsReady(state, { payload }) {
-      state.hlsReady = payload;
-    },
     setIsPlaying(state, { payload }) {
       state.isPlaying = payload;
     },
@@ -56,30 +54,34 @@ const videoSlice = createSlice({
       state.isMuted = payload;
     },
     setInPoint(state, { payload }) {
-      const max = state.outPoint != null ? state.outPoint - 0.02 : 1;
+      const minGap = state.duration > 0 ? 1 / state.duration : 0.001;
+      const max = state.outPoint != null ? state.outPoint - minGap : 1;
       state.inPoint = Math.max(0, Math.min(payload, max));
     },
     setOutPoint(state, { payload }) {
-      const min = state.inPoint != null ? state.inPoint + 0.02 : 0;
+      const minGap = state.duration > 0 ? 1 / state.duration : 0.001;
+      const min = state.inPoint != null ? state.inPoint + minGap : 0;
       state.outPoint = Math.max(min, Math.min(payload, 1));
     },
     setDragging(state, { payload }) {
-      state.dragging = payload; // null | 'playhead' | 'in' | 'out'
-    },
-    addClip(state, { payload }) {
-      state.clips.unshift(payload);
-    },
-    removeClip(state, { payload: id }) {
-      state.clips = state.clips.filter((c) => c.id !== id);
+      state.dragging = payload;
     },
     setClipName(state, { payload }) {
       state.clipName = payload;
     },
-    setSelectedTag(state, { payload }) {
-      state.selectedTag = payload;
+    toggleTag(state, { payload }) {
+      const idx = state.selectedTags.indexOf(payload);
+      if (idx === -1) state.selectedTags.push(payload);
+      else state.selectedTags.splice(idx, 1);
     },
     setFilterTag(state, { payload }) {
       state.filterTag = payload;
+    },
+    resetInOut(state) {
+      state.inPoint = null;
+      state.outPoint = null;
+      state.selectedTags = [];
+      state.clipName = 'cricketsample.mp4';
     },
   },
   extraReducers: (builder) => {
@@ -111,11 +113,19 @@ const videoSlice = createSlice({
         state.loading = false;
         state.error = error.message;
       });
+
+    // fetchMatchConfigThunk
+    builder
+      .addCase(fetchMatchConfigThunk.fulfilled, (state, { payload }) => {
+        state.hlsUrl = payload.output_hls_url;
+      })
+      .addCase(fetchMatchConfigThunk.rejected, (state, { error }) => {
+        state.error = error.message;
+      });
   },
 });
 
 export const {
-  setHlsReady,
   setIsPlaying,
   setCurrentTime,
   setDuration,
@@ -124,16 +134,16 @@ export const {
   setInPoint,
   setOutPoint,
   setDragging,
-  addClip,
-  removeClip,
   setClipName,
-  setSelectedTag,
+  toggleTag,
   setFilterTag,
+  resetInOut,
 } = videoSlice.actions;
 
 // ── Selectors ─────────────────────────────────────────────────────────────────
 
-export const selectHlsReady     = (s) => s.video.hlsReady;
+export const selectHlsUrl        = (s) => s.video.hlsUrl;
+export const selectHlsReady      = (s) => s.video.hlsReady;
 export const selectIsPlaying    = (s) => s.video.isPlaying;
 export const selectCurrentTime  = (s) => s.video.currentTime;
 export const selectDuration     = (s) => s.video.duration;
@@ -144,7 +154,7 @@ export const selectOutPoint     = (s) => s.video.outPoint;
 export const selectDragging     = (s) => s.video.dragging;
 export const selectClips        = (s) => s.video.clips;
 export const selectClipName     = (s) => s.video.clipName;
-export const selectSelectedTag  = (s) => s.video.selectedTag;
+export const selectSelectedTags = (s) => s.video.selectedTags;
 export const selectFilterTag    = (s) => s.video.filterTag;
 export const selectLoading      = (s) => s.video.loading;
 

@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   selectInPoint,
@@ -18,44 +18,38 @@ export default function InOutSeekbar() {
   const duration = useSelector(selectDuration);
 
   const barRef = useRef(null);
-  const [dragAnchor, setDragAnchor] = useState(null);
+  const [hoverFrac, setHoverFrac] = useState(null);
 
   const getFrac = (clientX) => {
     const rect = barRef.current.getBoundingClientRect();
     return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
   };
 
+  const minGap = duration > 0 ? 1 / duration : 0.001;
+
   const handleMouseDown = (e) => {
-    e.preventDefault();
-    const frac = getFrac(e.clientX);
-    setDragAnchor(frac);
-    dispatch(setInPoint(frac));
-    dispatch(setOutPoint(Math.min(frac + 0.02, 1)));
+    if (e.button === 0) {
+      // Left click → set IN point
+      e.preventDefault();
+      const frac = getFrac(e.clientX);
+      dispatch(setInPoint(frac));
+      // Push OUT forward if it would overlap
+      if (outPoint != null && frac >= outPoint) {
+        dispatch(setOutPoint(Math.min(frac + minGap, 1)));
+      }
+    }
   };
 
-  useEffect(() => {
-    if (dragAnchor === null) return;
-
-    const onMove = (e) => {
-      const frac = getFrac(e.clientX);
-      if (frac >= dragAnchor) {
-        dispatch(setInPoint(dragAnchor));
-        dispatch(setOutPoint(frac));
-      } else {
-        dispatch(setOutPoint(dragAnchor));
-        dispatch(setInPoint(frac));
-      }
-    };
-
-    const onUp = () => setDragAnchor(null);
-
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
-    return () => {
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
-    };
-  }, [dragAnchor, dispatch]);
+  const handleContextMenu = (e) => {
+    // Right click → set OUT point
+    e.preventDefault();
+    const frac = getFrac(e.clientX);
+    dispatch(setOutPoint(frac));
+    // Push IN back if it would overlap
+    if (inPoint != null && frac <= inPoint) {
+      dispatch(setInPoint(Math.max(frac - minGap, 0)));
+    }
+  };
 
   const inPct = inPoint != null ? inPoint * 100 : null;
   const outPct = outPoint != null ? outPoint * 100 : null;
@@ -64,14 +58,39 @@ export default function InOutSeekbar() {
 
   return (
     <div className="bg-[#111318] border-t border-[#1f2937] px-[14px] pt-5 pb-1 shrink-0">
+      {/* Hint */}
+      <div className="flex justify-end gap-4 mb-2 text-[10px] text-[#4b5563] select-none">
+        <span><span className="text-blue-400 font-semibold">Left click</span> → Set IN</span>
+        <span><span className="text-blue-400 font-semibold">Right click</span> → Set OUT</span>
+      </div>
+
       {/* Track */}
       <div
         ref={barRef}
         onMouseDown={handleMouseDown}
+        onContextMenu={handleContextMenu}
+        onMouseMove={(e) => setHoverFrac(getFrac(e.clientX))}
+        onMouseLeave={() => setHoverFrac(null)}
         className="relative h-[6px] bg-[#1f2937] rounded-full cursor-crosshair select-none"
       >
+        {/* Hover time tooltip */}
+        {hoverFrac != null && (
+          <div
+            className="absolute -top-7 -translate-x-1/2 pointer-events-none bg-[#1f2937] text-white text-[10px] font-mono px-[6px] py-[2px] rounded whitespace-nowrap"
+            style={{ left: `${hoverFrac * 100}%` }}
+          >
+            {formatTime(hoverFrac * duration)}
+          </div>
+        )}
+        {/* Hover ghost line */}
+        {hoverFrac != null && (
+          <div
+            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-[1px] h-[10px] bg-white/40 pointer-events-none"
+            style={{ left: `${hoverFrac * 100}%` }}
+          />
+        )}
         {/* Range highlight */}
-        {inPct != null && outPct != null && (
+        {inPct != null && outPct != null && rangePct > 0 && (
           <div
             className="absolute top-0 bottom-0 bg-blue-500/30 border-x-[2px] border-blue-500 rounded-full pointer-events-none"
             style={{ left: `${inPct}%`, width: `${rangePct}%` }}

@@ -1,4 +1,4 @@
-import { TAG_COLORS } from '../../../shared/constants/tags';
+
 
 const PlayOverlay = () => (
   <div className="absolute inset-0 flex items-center justify-center">
@@ -16,11 +16,14 @@ const PlayOverlay = () => (
   </div>
 );
 
-export default function ClipCard({ clip }) {
+export default function ClipCard({ clip, onSelect, isActive }) {
   const tags = Array.isArray(clip.tags) ? clip.tags : (clip.tag ? [clip.tag] : []);
 
   return (
-    <div className="flex items-start gap-3 py-3 px-5 border-b border-[#1a1f2e] cursor-pointer transition-colors duration-150 hover:bg-white/[0.04]">
+    <div
+      onClick={onSelect}
+      className={`flex items-start gap-3 py-3 px-5 border-b border-[#1a1f2e] cursor-pointer transition-colors duration-150 hover:bg-white/[0.04] ${isActive ? 'bg-indigo-500/10 border-l-2 border-l-indigo-500' : ''}`}
+    >
 
       {/* Thumbnail */}
       <div
@@ -44,7 +47,7 @@ export default function ClipCard({ clip }) {
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-1 flex-wrap">
             {tags.map((tag, idx) => {
-              const c = TAG_COLORS[tag] || { text: '#fff', bg: '#333', border: '#555' };
+              const c = { text: '#fff', bg: '#333', border: '#555' };
               return (
                 <span
                   key={idx}

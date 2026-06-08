@@ -23,6 +23,7 @@ function App() {
             <DashboardLayout>
               <Routes>
                 <Route path="/" element={<Navigate to="/trimming" replace />} />
+                <Route path="/trimming/:matchId" element={<VideoTrimming />} />
                 <Route path="/trimming" element={<VideoTrimming />} />
                 <Route path="/services" element={<div />} />
                 <Route path="/highlights" element={<div />} />

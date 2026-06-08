@@ -1,7 +1,6 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { selectCurrentTime, selectDuration, setCurrentTime, setDragging } from '../videoSlice';
 import { getFractionFromMouseEvent, formatTime } from '../../../shared/utils/formatTime/timeFormat';
-import TimelineMarkers  from './TimelineMarkers';
 import TimelinePlayhead from './TimelinePlayhead';
 
 const TICK_COUNT = 13;
@@ -41,8 +40,6 @@ export default function Timeline({ videoRef, timelineBarRef }) {
           className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-[#4f46e5] to-[#6366f1] rounded-[3px]"
           style={{ width: `${playPercent}%` }}
         />
-
-        <TimelineMarkers />
 
         <TimelinePlayhead
           percent={Number(playPercent)}

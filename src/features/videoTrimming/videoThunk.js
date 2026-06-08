@@ -1,7 +1,7 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { initHls, destroyHls } from './services/hlsService';
 import { createClip } from './services/clipService';
-import { saveClipToServer } from './videoService';
+import { saveClipToServer, fetchMatchConfig } from './services/videoService';
 
 /**
  * Load the HLS stream and attach it to a video element.
@@ -9,15 +9,29 @@ import { saveClipToServer } from './videoService';
  */
 export const loadHlsThunk = createAsyncThunk(
   'video/loadHls',
-  async (videoElement, { rejectWithValue }) => {
+  async (videoElement, { getState, rejectWithValue }) => {
+    const { hlsUrl } = getState().video;
+    if (!hlsUrl) return rejectWithValue('No HLS URL available');
     try {
       await new Promise((resolve, reject) => {
-        initHls(videoElement, { onReady: resolve, onError: reject });
+        initHls(videoElement, hlsUrl, { onReady: resolve, onError: reject });
       });
       return true;
     } catch (err) {
       destroyHls();
       return rejectWithValue(err?.message || 'HLS failed to load');
+    }
+  }
+);
+
+export const fetchMatchConfigThunk = createAsyncThunk(
+  'video/fetchMatchConfig',
+  async (matchId, { rejectWithValue }) => {
+    try {
+      const res = await fetchMatchConfig(matchId);
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.message);
     }
   }
 );
@@ -30,9 +44,9 @@ export const saveClipThunk = createAsyncThunk(
   'video/saveClip',
   async (_, { getState, rejectWithValue }) => {
     const { video } = getState();
-    const { clipName, selectedTag, inPoint, outPoint, duration } = video;
+    const { clipName, selectedTags, inPoint, outPoint, duration } = video;
 
-    const clip = createClip({ clipName, selectedTag, inPoint, outPoint, duration });
+    const clip = createClip({ clipName, selectedTags, inPoint, outPoint, duration });
 
     try {
       // Attempt server save; fall back to local-only if the API is unavailable.

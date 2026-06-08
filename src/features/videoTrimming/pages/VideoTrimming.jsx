@@ -1,21 +1,25 @@
 import { useRef, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
 import {
   selectDragging,
-  selectInPoint,
-  selectOutPoint,
   selectDuration,
   selectCurrentTime,
+  selectInPoint,
+  selectOutPoint,
+  selectHlsUrl,
+  selectHlsReady,
   setDragging,
-  setInPoint,
-  setOutPoint,
   setCurrentTime,
+  resetInOut,
 } from "../videoSlice";
 import {
   getFractionFromMouseEvent,
   formatTime,
-  clamp,
 } from "../../../shared/utils/formatTime/timeFormat";
+import { fetchMatchConfigThunk, loadHlsThunk } from "../videoThunk";
+
+const DEFAULT_MATCH_ID = 'CNO-20260608-ODI-PAKIND-1O3I9M';
 
 import VideoPlayer from "../components/VideoPlayer";
 import VolumeControl from "../components/VolumeControl";
@@ -23,7 +27,7 @@ import PlaybackControls from "../components/PlaybackControls";
 import GoLiveButton from "../components/GoLiveButton";
 import Timeline from "../components/Timeline";
 import InOutSeekbar from "../components/InOutSeekbar";
-import ThumbnailStrip from "../components/ThumbnailStrip";
+import ClipModal from "../components/ClipModal";
 import ClipsList from "../components/ClipsList";
 
 import FullscreenIcon from "../../../assets/Icon/fullscreenIcon.svg";
@@ -32,16 +36,31 @@ import CutIcon from "../../../assets/Icon/cutIcon.svg";
 
 export default function VideoTrimming() {
   const dispatch = useDispatch();
+  const { matchId } = useParams();
   const [showEdit, setShowEdit] = useState(false);
+  const [showClipModal, setShowClipModal] = useState(false);
   const videoRef = useRef(null);
   const tlBarRef = useRef(null);
-  const thumbBarRef = useRef(null);
 
-  const dragging = useSelector(selectDragging);
-  const inPoint = useSelector(selectInPoint);
-  const outPoint = useSelector(selectOutPoint);
-  const duration = useSelector(selectDuration);
-  const currentTime = useSelector(selectCurrentTime);
+  const dragging     = useSelector(selectDragging);
+  const duration     = useSelector(selectDuration);
+  const currentTime  = useSelector(selectCurrentTime);
+  const inPoint      = useSelector(selectInPoint);
+  const outPoint     = useSelector(selectOutPoint);
+  const hlsUrl       = useSelector(selectHlsUrl);
+  const hlsReady     = useSelector(selectHlsReady);
+
+  // Step 1: fetch match config (URL param takes priority, else use default)
+  useEffect(() => {
+    dispatch(fetchMatchConfigThunk(matchId || DEFAULT_MATCH_ID));
+  }, [matchId, dispatch]);
+
+  // Step 2: load HLS once URL is ready and player hasn't initialised yet
+  useEffect(() => {
+    if (hlsUrl && videoRef.current && !hlsReady) {
+      dispatch(loadHlsThunk(videoRef.current));
+    }
+  }, [hlsUrl, hlsReady, dispatch]);
 
   useEffect(() => {
     if (!dragging) return;
@@ -52,14 +71,6 @@ export default function VideoTrimming() {
         const t = frac * duration;
         if (videoRef.current) videoRef.current.currentTime = t;
         dispatch(setCurrentTime(t));
-      } else if (dragging === "in") {
-        const frac = getFractionFromMouseEvent(e.clientX, thumbBarRef.current);
-        const max = outPoint != null ? outPoint - 0.02 : 1;
-        dispatch(setInPoint(clamp(frac, 0, max)));
-      } else if (dragging === "out") {
-        const frac = getFractionFromMouseEvent(e.clientX, thumbBarRef.current);
-        const min = inPoint != null ? inPoint + 0.02 : 0;
-        dispatch(setOutPoint(clamp(frac, min, 1)));
       }
     };
 
@@ -71,7 +82,17 @@ export default function VideoTrimming() {
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("mouseup", onMouseUp);
     };
-  }, [dragging, duration, inPoint, outPoint, dispatch]);
+  }, [dragging, duration, dispatch]);
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'Enter' && inPoint != null && outPoint != null) {
+        setShowClipModal(true);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [inPoint, outPoint]);
 
   return (
     <>
@@ -110,13 +131,23 @@ export default function VideoTrimming() {
           </div>
 
           <Timeline videoRef={videoRef} timelineBarRef={tlBarRef} />
-          <InOutSeekbar />
-          {showEdit && <ThumbnailStrip thumbBarRef={thumbBarRef} videoRef={videoRef} />}
+          {showEdit && <InOutSeekbar />}
         </div>
 
         {/* RIGHT: Clips */}
         <ClipsList />
       </div>
+
+      {showClipModal && (
+        <ClipModal
+          onClose={() => setShowClipModal(false)}
+          onSaved={() => {
+            setShowClipModal(false);
+            setShowEdit(false);
+            dispatch(resetInOut());
+          }}
+        />
+      )}
     </>
   );
 }
