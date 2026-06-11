@@ -18,8 +18,9 @@ import {
   formatTime,
 } from "../../../shared/utils/formatTime/timeFormat";
 import { fetchMatchConfigThunk, loadHlsThunk } from "../videoThunk";
+import { goToLive } from "../services/hlsService";
 
-const DEFAULT_MATCH_ID = 'CNO-20260608-ODI-PAKIND-1O3I9M';
+const DEFAULT_MATCH_ID = 'CNO-20260608-ODI-INDPAK-U7UABG';
 
 import VideoPlayer from "../components/VideoPlayer";
 import VolumeControl from "../components/VolumeControl";
@@ -97,11 +98,11 @@ export default function VideoTrimming() {
   return (
     <>
       <div
-        className="flex h-full overflow-hidden text-white bg-[#0d0d10]"
+        className="flex h-screen overflow-hidden text-white bg-[#0d0d10]"
         // style={{ fontFamily: "'DM Sans', sans-serif" }}
       >
         {/* LEFT: Editor */}
-        <div className="flex flex-1 flex-col overflow-hidden min-w-0 mx-8  h-[75%] py-4 px-4 bg-[#111318] rounded-[20px]">
+        <div className="flex flex-1 self-start flex-col overflow-hidden mx-8 py-4 px-4 bg-[#111318] rounded-[20px]">
           <VideoPlayer videoRef={videoRef} />
 
           {/* Controls bar */}
@@ -117,7 +118,10 @@ export default function VideoTrimming() {
             <PlaybackControls videoRef={videoRef} />
 
             <div className="flex items-center gap-[5px]">
-              <GoLiveButton />
+              <GoLiveButton onClick={() => {
+                const t = goToLive(videoRef.current);
+                if (t != null) dispatch(setCurrentTime(t));
+              }} />
               <IconBtn title="Download">
                 <img src={DownloadIcon} alt="FullscreenIcon" loading="lazy" />
               </IconBtn>
@@ -131,7 +135,7 @@ export default function VideoTrimming() {
           </div>
 
           <Timeline videoRef={videoRef} timelineBarRef={tlBarRef} />
-          {showEdit && <InOutSeekbar />}
+          {showEdit && <InOutSeekbar videoRef={videoRef} />}
         </div>
 
         {/* RIGHT: Clips */}

@@ -28,3 +28,26 @@ export function destroyHls() {
   }
 }
 
+export function getHlsInstance() {
+  return hlsInstance;
+}
+
+export function goToLive(videoElement) {
+  if (!videoElement) return;
+  if (hlsInstance) {
+    const livePos = hlsInstance.liveSyncPosition;
+    if (livePos != null) {
+      videoElement.currentTime = livePos;
+      videoElement.play().catch(() => {});
+      return livePos;
+    }
+  }
+  // Fallback: seek to end of seekable range
+  if (videoElement.seekable.length > 0) {
+    const end = videoElement.seekable.end(videoElement.seekable.length - 1);
+    videoElement.currentTime = end;
+    videoElement.play().catch(() => {});
+    return end;
+  }
+  return null;
+}

@@ -1,4 +1,10 @@
+import { useSelector } from 'react-redux';
+import { selectMatchConfig } from '../videoSlice';
+
 export default function LiveBadge() {
+  const cfg = useSelector(selectMatchConfig);
+  if (!cfg?.engine_status) return null;
+
   return (
     <>
       <style>{`

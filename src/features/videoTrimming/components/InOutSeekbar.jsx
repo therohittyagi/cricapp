@@ -6,12 +6,14 @@ import {
   selectDuration,
   setInPoint,
   setOutPoint,
+  setCurrentTime,
+  setIsPlaying,
 } from '../videoSlice';
 import { formatTime } from '../../../shared/utils/formatTime/timeFormat';
 
 const TICK_COUNT = 13;
 
-export default function InOutSeekbar() {
+export default function InOutSeekbar({ videoRef }) {
   const dispatch = useDispatch();
   const inPoint = useSelector(selectInPoint);
   const outPoint = useSelector(selectOutPoint);
@@ -25,36 +27,41 @@ export default function InOutSeekbar() {
     return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
   };
 
-  const minGap = duration > 0 ? 1 / duration : 0.001;
-
   const handleMouseDown = (e) => {
     if (e.button === 0) {
-      // Left click → set IN point
       e.preventDefault();
-      const frac = getFrac(e.clientX);
-      dispatch(setInPoint(frac));
-      // Push OUT forward if it would overlap
-      if (outPoint != null && frac >= outPoint) {
-        dispatch(setOutPoint(Math.min(frac + minGap, 1)));
+      const secs = getFrac(e.clientX) * duration;
+      dispatch(setInPoint(secs));
+      dispatch(setCurrentTime(secs));
+      if (videoRef?.current) {
+        videoRef.current.currentTime = secs;
+        videoRef.current.play();
+        dispatch(setIsPlaying(true));
+      }
+      if (outPoint != null && secs >= outPoint) {
+        dispatch(setOutPoint(Math.min(secs + 1, duration)));
       }
     }
   };
 
   const handleContextMenu = (e) => {
-    // Right click → set OUT point
     e.preventDefault();
-    const frac = getFrac(e.clientX);
-    dispatch(setOutPoint(frac));
-    // Push IN back if it would overlap
-    if (inPoint != null && frac <= inPoint) {
-      dispatch(setInPoint(Math.max(frac - minGap, 0)));
+    const secs = getFrac(e.clientX) * duration;
+    dispatch(setOutPoint(secs));
+    dispatch(setCurrentTime(secs));
+    if (videoRef?.current) {
+      videoRef.current.currentTime = secs;
+      videoRef.current.pause();
+      dispatch(setIsPlaying(false));
+    }
+    if (inPoint != null && secs <= inPoint) {
+      dispatch(setInPoint(Math.max(secs - 1, 0)));
     }
   };
 
-  const inPct = inPoint != null ? inPoint * 100 : null;
-  const outPct = outPoint != null ? outPoint * 100 : null;
-  const rangePct =
-    inPoint != null && outPoint != null ? (outPoint - inPoint) * 100 : 0;
+  const inPct   = inPoint  != null && duration ? (inPoint  / duration) * 100 : null;
+  const outPct  = outPoint != null && duration ? (outPoint / duration) * 100 : null;
+  const rangePct = inPct != null && outPct != null ? outPct - inPct : 0;
 
   return (
     <div className="bg-[#111318] border-t border-[#1f2937] px-[14px] pt-5 pb-1 shrink-0">
@@ -105,7 +112,7 @@ export default function InOutSeekbar() {
           >
             <div className="w-[3px] h-[14px] bg-blue-400 rounded-full" />
             <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[9px] text-blue-300 font-mono whitespace-nowrap font-semibold">
-              IN {formatTime(inPoint * duration)}
+              IN {formatTime(inPoint)}
             </div>
           </div>
         )}
@@ -118,7 +125,7 @@ export default function InOutSeekbar() {
           >
             <div className="w-[3px] h-[14px] bg-blue-400 rounded-full" />
             <div className="absolute top-4 left-1/2 -translate-x-1/2 text-[9px] text-blue-300 font-mono whitespace-nowrap font-semibold">
-              OUT {formatTime(outPoint * duration)}
+              OUT {formatTime(outPoint)}
             </div>
           </div>
         )}

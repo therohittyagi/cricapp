@@ -1,4 +1,3 @@
-import { useState, useRef, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   setClipName,
@@ -7,159 +6,98 @@ import {
   selectSelectedTags,
   selectInPoint,
   selectOutPoint,
-  selectDuration,
-  selectClips,
+  selectMatchConfig,
 } from "../videoSlice";
 import { formatTime } from "../../../shared/utils/formatTime/timeFormat";
+import { CRICKET_TAGS, TAG_CATEGORY_STYLES } from "../../../shared/constants/events";
 
-const ChevronIcon = () => (
-  <svg
-    width="9"
-    height="9"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="3"
-  >
-    <polyline points="6,9 12,15 18,9" />
-  </svg>
-);
+const CATEGORY_LABELS = {
+  runs:      'Runs',
+  extras:    'Extras',
+  wicket:    'Wickets',
+  milestone: 'Milestones',
+  match:     'Match Events',
+};
 
-const CheckIcon = () => (
-  <svg
-    width="11"
-    height="11"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="3"
-  >
-    <polyline points="20,6 9,17 4,12" />
-  </svg>
-);
+const CATEGORIES = ['runs', 'extras', 'wicket', 'milestone', 'match'];
 
 export default function ClipForm() {
   const dispatch = useDispatch();
 
-  const clipName = useSelector(selectClipName);
-  const selectedTags = useSelector(selectSelectedTags);
-  const inPoint = useSelector(selectInPoint);
-  const outPoint = useSelector(selectOutPoint);
-  const duration = useSelector(selectDuration);
-  const clips = useSelector(selectClips);
-
-  const [tagOpen, setTagOpen] = useState(false);
-  const dropdownRef = useRef(null);
-
-  /** 🔹 Build tag list dynamically */
-  const tagOptions = useMemo(() => {
-    const set = new Set(selectedTags);
-    clips.forEach((c) => {
-      if (Array.isArray(c.tags)) {
-        c.tags.forEach((t) => set.add(t));
-      } else if (c.tag) {
-        set.add(c.tag);
-      }
-    });
-    return Array.from(set);
-  }, [clips, selectedTags]);
-
-  // Close dropdown on outside click
-  useEffect(() => {
-    if (!tagOpen) return;
-    const handler = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setTagOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [tagOpen]);
+  const clipName      = useSelector(selectClipName);
+  const selectedTags  = useSelector(selectSelectedTags);
+  const inPoint       = useSelector(selectInPoint);
+  const outPoint      = useSelector(selectOutPoint);
+  const matchConfig   = useSelector(selectMatchConfig);
+  const defaultName   = matchConfig?.standard_file_name || "clip.mp4";
 
   const fieldCls =
     "w-full bg-[#1a1f2e] border border-[#2d3748] rounded-[7px] text-[#d1d5db] text-sm py-3 px-4";
 
   return (
     <div className="py-[13px] px-[18px] border-b border-[#1f2937]">
-      <div className="flex gap-2 mb-[10px]">
-        {/* Clip name */}
-        <div className="flex-1 min-w-0">
-          <label className="block text-sm font-semibold text-[#6b7280] mb-1 tracking-[0.5px] uppercase">
-            Clip Name
-          </label>
-          <input
-            value={clipName}
-            onChange={(e) => dispatch(setClipName(e.target.value))}
-            placeholder="clip.mp4"
-            className={`${fieldCls} outline-none focus:border-indigo-500`}
-          />
-        </div>
+      {/* Clip name */}
+      <div className="mb-[12px]">
+        <label className="block text-sm font-semibold text-[#6b7280] mb-1 tracking-[0.5px] uppercase">
+          Clip Name
+        </label>
+        <input
+          value={clipName}
+          onChange={(e) => dispatch(setClipName(e.target.value))}
+          placeholder={defaultName}
+          className={`${fieldCls} outline-none focus:border-indigo-500`}
+        />
+      </div>
 
-        {/* Tags */}
-        <div className="flex-1 min-w-0 relative" ref={dropdownRef}>
-          <label className="block text-sm font-semibold text-[#6b7280] mb-1 tracking-[0.5px] uppercase">
+      {/* Tags */}
+      <div className="mb-[12px]">
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-sm font-semibold text-[#6b7280] tracking-[0.5px] uppercase">
             Tags
           </label>
-
-          {/* Trigger */}
-          <div
-            onClick={() => setTagOpen((o) => !o)}
-            className={`${fieldCls} min-h-[46px] flex items-center justify-between gap-2 cursor-pointer`}
-          >
-            <div className="flex flex-wrap gap-1 flex-1">
-              {selectedTags.length === 0 ? (
-                <span className="text-[#6b7280]">Select tags…</span>
-              ) : (
-                selectedTags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="inline-block px-2 py-[2px] rounded-full text-xs font-semibold bg-[#0f172a] border border-[#334155] text-[#e5e7eb]"
-                  >
-                    {tag}
-                  </span>
-                ))
-              )}
-            </div>
-
-            <span
-              className={`transition-transform ${tagOpen ? "rotate-180" : ""}`}
+          {selectedTags.length > 0 && (
+            <button
+              type="button"
+              onClick={() => selectedTags.forEach((t) => dispatch(toggleTag(t)))}
+              className="text-xs text-[#6b7280] hover:text-[#e5e7eb] transition-colors"
             >
-              <ChevronIcon />
-            </span>
-          </div>
-
-          {/* Dropdown */}
-          {tagOpen && (
-            <div className="absolute top-[calc(100%+3px)] left-0 right-0 z-[999] bg-[#1a1f2e] border border-[#2d3748] rounded-lg overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.7)]">
-              {tagOptions.length === 0 ? (
-                <div className="py-2 px-3 text-sm text-[#6b7280]">
-                  No tags available
-                </div>
-              ) : (
-                tagOptions.map((tag) => {
-                  const isSelected = selectedTags.includes(tag);
-                  return (
-                    <div
-                      key={tag}
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => dispatch(toggleTag(tag))}
-                      className={`flex items-center justify-between py-2 px-3 cursor-pointer hover:bg-white/[0.06]
-                        ${isSelected ? "bg-indigo-500/10" : ""}`}
-                    >
-                      <span className="text-sm font-medium text-[#e5e7eb]">
-                        {tag}
-                      </span>
-                      {isSelected && (
-                        <span className="text-indigo-400">
-                          <CheckIcon />
-                        </span>
-                      )}
-                    </div>
-                  );
-                })
-              )}
-            </div>
+              Clear all ({selectedTags.length})
+            </button>
           )}
+        </div>
+
+        <div className="bg-[#1a1f2e] border border-[#2d3748] rounded-[7px] p-3 flex flex-col gap-3">
+          {CATEGORIES.map((cat) => {
+            const tags = CRICKET_TAGS.filter((t) => t.category === cat);
+            const styles = TAG_CATEGORY_STYLES[cat];
+            return (
+              <div key={cat}>
+                <span className="block text-[10px] font-bold text-[#4b5563] uppercase tracking-widest mb-[6px]">
+                  {CATEGORY_LABELS[cat]}
+                </span>
+                <div className="flex flex-wrap gap-[6px]">
+                  {tags.map(({ label }) => {
+                    const isSelected = selectedTags.includes(label);
+                    return (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={() => dispatch(toggleTag(label))}
+                        className={[
+                          'px-[10px] py-[3px] rounded-full text-xs font-semibold border transition-all duration-150 cursor-pointer',
+                          isSelected
+                            ? styles.active
+                            : `bg-transparent ${styles.base} hover:opacity-80`,
+                        ].join(' ')}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -180,7 +118,7 @@ export default function ClipForm() {
           Range
         </span>
         <span className="text-sm font-semibold text-blue-300 tabular-nums">
-          {formatTime(inPoint * duration)} → {formatTime(outPoint * duration)}
+          {formatTime(inPoint ?? 0)} → {formatTime(outPoint ?? 0)}
         </span>
       </div>
     </div>

@@ -1,6 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { initHls, destroyHls } from "./services/hlsService";
-import { fetchMatchConfig, saveClipToServer } from "./services/videoService";
+import { fetchMatchConfig, saveClipToServer, fetchClipsList } from "./services/videoService";
 
 export const loadHlsThunk = createAsyncThunk(
   "video/loadHls",
@@ -55,8 +55,8 @@ export const saveClipThunk = createAsyncThunk(
       const payload = {
         match_id: matchId,
         tags: selectedTags,
-        start_time: Math.floor((inPoint ?? 0) * duration),
-        end_time: Math.floor((outPoint ?? 0) * duration),
+        start_time: Math.floor(inPoint ?? 0),
+        end_time: Math.floor(outPoint ?? 0),
         output_name: clipName,
       };
 
@@ -69,6 +69,19 @@ export const saveClipThunk = createAsyncThunk(
       );
     }
   },
+);
+
+export const fetchClipsListThunk = createAsyncThunk(
+  "video/fetchClipsList",
+  async (matchId, { rejectWithValue }) => {
+    try {
+      return await fetchClipsList(matchId);
+    } catch (error) {
+      return rejectWithValue(
+        error?.response?.data?.message || error?.message || "Failed to fetch clips"
+      );
+    }
+  }
 );
 
 export const seekVideoThunk = (videoElement, time) => (dispatch, getState) => {

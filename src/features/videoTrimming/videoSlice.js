@@ -6,12 +6,14 @@ import {
   loadHlsThunk,
   saveClipThunk,
   fetchMatchConfigThunk,
+  fetchClipsListThunk,
 } from "./videoThunk";
 
 const initialState = {
   // Match Data
   matchId: null,
   hlsUrl: null,
+  matchConfig: null,
 
   // HLS / Playback
   hlsReady: false,
@@ -30,6 +32,8 @@ const initialState = {
 
   // Saved Clips
   clips: [],
+  clipsTotal: 0,
+  saveCounter: 0,
 
   // Form
   clipName: "sample.mp4",
@@ -72,19 +76,13 @@ const videoSlice = createSlice({
     },
 
     setInPoint(state, action) {
-      const minGap = state.duration > 0 ? 1 / state.duration : 0.001;
-
-      const max = state.outPoint != null ? state.outPoint - minGap : 1;
-
+      const max = state.outPoint != null ? state.outPoint - 1 : state.duration;
       state.inPoint = Math.max(0, Math.min(action.payload, max));
     },
 
     setOutPoint(state, action) {
-      const minGap = state.duration > 0 ? 1 / state.duration : 0.001;
-
-      const min = state.inPoint != null ? state.inPoint + minGap : 0;
-
-      state.outPoint = Math.max(min, Math.min(action.payload, 1));
+      const min = state.inPoint != null ? state.inPoint + 1 : 0;
+      state.outPoint = Math.max(min, Math.min(action.payload, state.duration));
     },
 
     setDragging(state, action) {
@@ -137,9 +135,11 @@ const videoSlice = createSlice({
       .addCase(fetchMatchConfigThunk.fulfilled, (state, action) => {
         state.loading = false;
 
-        state.matchId = action.payload?.match_id || null;
-
-        state.hlsUrl = action.payload?.output_hls_url || null;
+        const cfg = action.payload?.data ?? action.payload ?? null;
+        state.matchConfig = cfg;
+        state.matchId  = cfg?.match_id || null;
+        state.hlsUrl   = cfg?.output_hls_url || null;
+        if (cfg?.standard_file_name) state.clipName = cfg.standard_file_name;
       })
 
       .addCase(fetchMatchConfigThunk.rejected, (state, action) => {
@@ -175,10 +175,9 @@ const videoSlice = createSlice({
         state.error = null;
       })
 
-      .addCase(saveClipThunk.fulfilled, (state, action) => {
+      .addCase(saveClipThunk.fulfilled, (state) => {
         state.loading = false;
-
-        state.clips.unshift(action.payload);
+        state.saveCounter += 1;
 
         // Reset form after save
         state.inPoint = null;
@@ -190,6 +189,25 @@ const videoSlice = createSlice({
       .addCase(saveClipThunk.rejected, (state, action) => {
         state.loading = false;
 
+        state.error = action.payload || action.error.message;
+      })
+
+      /*
+       * FETCH CLIPS LIST
+       */
+      .addCase(fetchClipsListThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+
+      .addCase(fetchClipsListThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.clips = action.payload?.results || [];
+        state.clipsTotal = action.payload?.count || 0;
+      })
+
+      .addCase(fetchClipsListThunk.rejected, (state, action) => {
+        state.loading = false;
         state.error = action.payload || action.error.message;
       });
   },
@@ -217,6 +235,8 @@ export const {
 |--------------------------------------------------------------------------
 */
 
+export const selectMatchConfig = (state) => state.video.matchConfig;
+
 export const selectMatchId = (state) => state.video.matchId;
 
 export const selectHlsUrl = (state) => state.video.hlsUrl;
@@ -240,6 +260,10 @@ export const selectOutPoint = (state) => state.video.outPoint;
 export const selectDragging = (state) => state.video.dragging;
 
 export const selectClips = (state) => state.video.clips;
+
+export const selectClipsTotal = (state) => state.video.clipsTotal;
+
+export const selectSaveCounter = (state) => state.video.saveCounter;
 
 export const selectClipName = (state) => state.video.clipName;
 
