@@ -102,7 +102,7 @@ export default function VideoTrimming() {
         // style={{ fontFamily: "'DM Sans', sans-serif" }}
       >
         {/* LEFT: Editor */}
-        <div className="flex flex-1 self-start flex-col overflow-hidden mx-8 py-4 px-4 bg-[#111318] rounded-[20px]">
+        <div className="flex flex-1 self-start flex-col overflow-hidden mx-8 py-4 px-4 bg-[#111318] rounded-[20px] ">
           <VideoPlayer videoRef={videoRef} />
 
           {/* Controls bar */}
