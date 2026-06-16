@@ -39,11 +39,11 @@ export default function VolumeControl({ videoRef }) {
   const displayVolume = isMuted ? 0 : volume;
 
   return (
-    <div className="flex items-center gap-[6px]">
+    <div className="flex items-center gap-1 @2xl:gap-[6px]">
       <button
         onClick={handleMuteToggle}
         title={isMuted ? 'Unmute' : 'Mute'}
-        className={`bg-transparent border-none cursor-pointer w-7 h-7 flex items-center justify-center rounded ${isMuted ? 'text-[#6b7280]' : 'text-[#9ca3af]'}`}
+        className={`bg-transparent border-none cursor-pointer w-5 h-5 @lg:w-6 @lg:h-6 @2xl:w-7 @2xl:h-7 flex items-center justify-center rounded ${isMuted ? 'text-[#6b7280]' : 'text-[#9ca3af]'}`}
       >
         {isMuted ? <MutedIcon /> : <MuteIcon />}
       </button>
@@ -55,7 +55,7 @@ export default function VolumeControl({ videoRef }) {
         step="0.02"
         value={displayVolume}
         onChange={handleVolumeChange}
-        className="w-[72px]"
+        className="w-[40px] @lg:w-[52px] @2xl:w-[72px]"
         style={{ background: `linear-gradient(to right, #6366f1 ${displayVolume * 100}%, #374151 0)` }}
       />
     </div>

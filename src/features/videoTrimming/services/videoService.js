@@ -20,3 +20,9 @@ export const fetchClipsList = async (matchId) => {
   const response = await api.get(`/clipping/hls-clip/get-list/${matchId}/`);
   return response.data;
 };
+
+
+export const saveMp4ClipToServer = async ({ job_id, ...payload }) => {
+  const response = await api.put(`/clipping/mp4-clip/${job_id}/`, payload);
+  return response.data;
+};

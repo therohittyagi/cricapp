@@ -52,8 +52,8 @@ export default function LogIn() {
       </div>
 
       {/* ── Logo — fixed top-left ── */}
-      <div className="absolute top-5 left-5 sm:top-6 sm:left-8 md:left-14 lg:left-20 z-20 flex items-center gap-2">
-        <img src={Logo} alt="Logo"  />
+      <div className="absolute top-8 left-5 sm:top-6 sm:left-8 md:left-14 lg:left-20 z-20 flex items-center gap-2">
+        <img src={Logo} alt="Logo" className="h-14 mt-10"  />
       </div>
 
       {/* ── Main layout ── */}

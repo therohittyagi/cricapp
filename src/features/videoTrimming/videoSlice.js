@@ -7,6 +7,7 @@ import {
   saveClipThunk,
   fetchMatchConfigThunk,
   fetchClipsListThunk,
+  saveMp4ClipThunk,
 } from "./videoThunk";
 
 const initialState = {
@@ -36,13 +37,19 @@ const initialState = {
   saveCounter: 0,
 
   // Form
-  clipName: "sample.mp4",
+  clipName: "",
   selectedTags: [],
   filterTag: "all",
 
   // Async State
   loading: false,
   error: null,
+
+  // MP4 Clip
+  mp4ClipLoading:     false,
+  mp4ClipError:       null,
+  mp4ClipSaveCounter: 0,
+  mp4ClipLastSaved:   null,
 };
 
 const videoSlice = createSlice({
@@ -117,7 +124,7 @@ const videoSlice = createSlice({
       state.inPoint = null;
       state.outPoint = null;
       state.selectedTags = [];
-      state.clipName = "sample.mp4";
+      state.clipName = state.matchConfig?.standard_file_name || "";
     },
   },
 
@@ -178,12 +185,10 @@ const videoSlice = createSlice({
       .addCase(saveClipThunk.fulfilled, (state) => {
         state.loading = false;
         state.saveCounter += 1;
-
-        // Reset form after save
         state.inPoint = null;
         state.outPoint = null;
         state.selectedTags = [];
-        state.clipName = "sample.mp4";
+        state.clipName = state.matchConfig?.standard_file_name || "";
       })
 
       .addCase(saveClipThunk.rejected, (state, action) => {
@@ -209,6 +214,25 @@ const videoSlice = createSlice({
       .addCase(fetchClipsListThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || action.error.message;
+      })
+
+      /*
+       * SAVE MP4 CLIP
+       */
+      .addCase(saveMp4ClipThunk.pending, (state) => {
+        state.mp4ClipLoading = true;
+        state.mp4ClipError   = null;
+      })
+
+      .addCase(saveMp4ClipThunk.fulfilled, (state, action) => {
+        state.mp4ClipLoading     = false;
+        state.mp4ClipSaveCounter += 1;
+        state.mp4ClipLastSaved   = action.payload ?? null;
+      })
+
+      .addCase(saveMp4ClipThunk.rejected, (state, action) => {
+        state.mp4ClipLoading = false;
+        state.mp4ClipError   = action.payload || action.error.message;
       });
   },
 });
@@ -274,5 +298,10 @@ export const selectFilterTag = (state) => state.video.filterTag;
 export const selectLoading = (state) => state.video.loading;
 
 export const selectError = (state) => state.video.error;
+
+export const selectMp4ClipLoading     = (state) => state.video.mp4ClipLoading;
+export const selectMp4ClipError       = (state) => state.video.mp4ClipError;
+export const selectMp4ClipSaveCounter = (state) => state.video.mp4ClipSaveCounter;
+export const selectMp4ClipLastSaved   = (state) => state.video.mp4ClipLastSaved;
 
 export default videoSlice.reducer;

@@ -1,6 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { initHls, destroyHls } from "./services/hlsService";
-import { fetchMatchConfig, saveClipToServer, fetchClipsList } from "./services/videoService";
+import { fetchMatchConfig, saveClipToServer, fetchClipsList, saveMp4ClipToServer } from "./services/videoService";
 
 export const loadHlsThunk = createAsyncThunk(
   "video/loadHls",
@@ -69,6 +69,21 @@ export const saveClipThunk = createAsyncThunk(
       );
     }
   },
+);
+
+export const saveMp4ClipThunk = createAsyncThunk(
+  "video/saveMp4Clip",
+  async (payload, { rejectWithValue }) => {
+    try {
+      return await saveMp4ClipToServer(payload);
+    } catch (error) {
+      return rejectWithValue(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to save mp4 clip"
+      );
+    }
+  }
 );
 
 export const fetchClipsListThunk = createAsyncThunk(

@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { setCurrentTime, setDuration, setIsPlaying } from '../videoSlice';
 
-export default function HlsPlayer({ videoRef, className }) {
+export default function HlsPlayer({ videoRef, className, compact = false }) {
   const dispatch = useDispatch();
 
   // Destroy HLS instance on unmount
@@ -46,7 +46,8 @@ export default function HlsPlayer({ videoRef, className }) {
       ref={videoRef}
       playsInline
       preload="auto"
-      style={{ aspectRatio: '16/9' }}
+      className={compact ? 'w-full h-full object-contain' : 'w-full'}
+      style={compact ? {} : { aspectRatio: '16/9' }}
     />
   );
 }

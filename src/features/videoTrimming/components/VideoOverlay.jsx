@@ -1,10 +1,8 @@
-import MatchInfo from './MatchInfo';
 import LiveBadge from './LiveBadge';
 
 export default function VideoOverlay({ showLoader }) {
   return (
     <>
-      <MatchInfo />
       <LiveBadge />
 
       {showLoader && (
